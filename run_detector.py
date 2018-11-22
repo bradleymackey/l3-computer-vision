@@ -3,11 +3,11 @@
 # computer vision assignment
 # SSAIII 2018/19
 
-
 import main
 import cv2
 import os
 import numpy as np
+import time
 
 #####################################################################
 
@@ -44,22 +44,27 @@ full_path_directory_right =  os.path.join(master_path_to_dataset, directory_to_c
 # get a list of the left image files and sort them (by timestamp in filename)
 left_file_list = sorted(os.listdir(full_path_directory_left))
 
+print()
+print("--- beginning detections ---")
+print()
+
 for filename_left in left_file_list:
 
     # skip forward to start a file we specify by timestamp (if this is set)
+
     if ((len(skip_forward_file_pattern) > 0) and not(skip_forward_file_pattern in filename_left)):
         continue
     elif ((len(skip_forward_file_pattern) > 0) and (skip_forward_file_pattern in filename_left)):
         skip_forward_file_pattern = ""
 
     # from the left image filename get the corresponding right image
-    filename_right = filename_left.replace("_L", "_R");
-    full_path_filename_left = os.path.join(full_path_directory_left, filename_left);
-    full_path_filename_right = os.path.join(full_path_directory_right, filename_right);
+    filename_right = filename_left.replace("_L", "_R")
+    full_path_filename_left = os.path.join(full_path_directory_left, filename_left)
+    full_path_filename_right = os.path.join(full_path_directory_right, filename_right)
 
-    # for sanity print out these filenames
-    print(full_path_filename_left)
-    print(full_path_filename_right)
+    # print out the filenames, as per the project requirements
+    print(filename_left)
+    print(filename_right,": nearest detected scene object: (X.Xm)")
     print()
 
     # check the file is a PNG file (left) and check a corresponding right image
@@ -77,7 +82,7 @@ for filename_left in left_file_list:
         imgR = cv2.imread(full_path_filename_right, cv2.IMREAD_COLOR)
         cv2.imshow('right image',imgR)
 
-        print("-- files loaded successfully");
+        print("-------- files loaded successfully --------")
         print()
 
         # remember to convert to grayscale (as the disparity matching works on grayscale)
@@ -92,7 +97,19 @@ for filename_left in left_file_list:
         grayL = np.power(grayL, 0.75).astype('uint8')
         grayR = np.power(grayR, 0.75).astype('uint8')
 
-
+        key = cv2.waitKey(40 * (not(pause_playback))) & 0xFF # wait 40ms (i.e. 1000ms / 25 fps = 40 ms)
+        if (key == ord('x')):       # exit
+            break; # exit
+        elif (key == ord('s')):     # save
+            cv2.imwrite("left.png", imgL)
+            cv2.imwrite("right.png", imgR)
+        elif (key == ord('c')):     # crop
+            crop_disparity = not(crop_disparity)
+        elif (key == ord(' ')):     # pause (on next frame)
+            pause_playback = not(pause_playback)
+    else:
+            print("-- files skipped (perhaps one is missing or not PNG)")
+            print()
 
 # close all windows, we are done.
 cv2.destroyAllWindows()
