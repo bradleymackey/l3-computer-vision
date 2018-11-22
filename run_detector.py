@@ -62,7 +62,7 @@ except:
 print("svm size : ", len(svm.getSupportVectors()))
 print("svm var count : ", svm.getVarCount())
 
-show_scan_window_process = True
+show_scan_window_process = False
 
 print()
 print("--- beginning detections ---")
@@ -106,9 +106,17 @@ for filename_left in left_file_list:
 
         # pre-process the left image
         left_processor = ImagePreprocessor(left_copy)
-        left_copy = left_processor.correct_gamma(gamma=1.5)
+        left_processor.correct_gamma(gamma=1.7)
+        left_processor.fix_luminance()
+        left_processor.reduce_brightness()
+        left_copy = left_processor.image
 
-        left_copy = cv2.Canny(left_copy, 255,1)
+
+        imgray = cv2.cvtColor(left_copy,cv2.COLOR_BGR2GRAY)
+        ret,thresh = cv2.threshold(imgray,127,255,0)
+        left_copy, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+        #left_copy = cv2.Canny(left_copy, 255,1)
 
 
         print("-------- files loaded successfully --------")
@@ -201,9 +209,11 @@ for filename_left in left_file_list:
 
         # finally draw all the detection on the original LEFT image
         for rect in detections:
+            
             cv2.rectangle(imgL, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
 
-
+        # draw the contours on the left copy image for the moment
+        cv2.drawContours(left_copy, contours, -1, (0,255,0), 3)
         cv2.imshow('left image',imgL)
         cv2.imshow('left image copy',left_copy)
         cv2.imshow('right image',imgR)

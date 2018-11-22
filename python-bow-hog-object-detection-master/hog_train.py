@@ -44,7 +44,7 @@ def main():
     # No - for background -ve images (first class)
     # Yes - for object samples +ve images (second class)
 
-    sample_from_centre = [False, True];
+    sample_from_centre = [False, True]
 
     # perform image loading
 
@@ -73,6 +73,8 @@ def main():
     svm = cv2.ml.SVM_create()
     svm.setType(cv2.ml.SVM_C_SVC)           # change this for multi-class
     svm.setKernel(params.HOG_SVM_kernel)    # use specific kernel type (alteratives exist)
+    svm.setGamma(80) # gamma 80 with hope of reducing the false positives!!
+    svm.setC(100) # set c to be 100 with hope of reducing false positives!!
 
     # compile samples (i.e. visual word histograms) for each training image
 
@@ -104,7 +106,7 @@ def main():
     output = svm.predict(samples)[1].ravel()
     error = (np.absolute(class_labels.ravel() - output).sum()) / float(output.shape[0])
 
-    # we are succesful if our prediction > than random
+    # we are successful if our prediction > than random
     # e.g. for 2 class labels this would be 1/2 = 0.5 (i.e. 50%)
 
     if error < (1.0 / len(params.DATA_CLASS_NAMES)):
