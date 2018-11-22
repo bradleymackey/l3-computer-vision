@@ -19,8 +19,9 @@ import os
 import numpy as np
 import random
 import csv
+import main
 
-master_path_to_dataset = "/tmp/TTBB-durham-02-10-17-sub10" # ** need to edit this **
+master_path_to_dataset = main.master_path_to_dataset # ** need to edit this **
 directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
 

@@ -33,7 +33,7 @@ try:
 except:
     print("Missing files - SVM!");
     print("-- have you performed training to produce these files ?");
-    exit();
+    exit()
 
 # print some checks
 
@@ -56,8 +56,7 @@ for filename in sorted(os.listdir(directory_to_cycle)):
         img = cv2.imread(os.path.join(directory_to_cycle, filename), cv2.IMREAD_COLOR)
 
         # make a copy for drawing the output
-
-        output_img = img.copy();
+        output_img = img.copy()
 
         # for a range of different image scales in an image pyramid
 
