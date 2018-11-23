@@ -13,6 +13,7 @@
 
 import cv2
 from utils import *
+import params
 
 ################################################################################
 
@@ -73,8 +74,8 @@ def main():
     svm = cv2.ml.SVM_create()
     svm.setType(cv2.ml.SVM_C_SVC)           # change this for multi-class
     svm.setKernel(params.HOG_SVM_kernel)    # use specific kernel type (alteratives exist)
-    svm.setGamma(80) # gamma 80 with hope of reducing the false positives!!
-    svm.setC(100) # set c to be 100 with hope of reducing false positives!!
+    svm.setGamma(7) # gamma with hope of reducing the false positives!!
+    svm.setC(250) # set c with hope of reducing false positives!!
 
     # compile samples (i.e. visual word histograms) for each training image
 

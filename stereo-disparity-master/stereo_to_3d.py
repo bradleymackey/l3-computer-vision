@@ -107,11 +107,11 @@ def project_3D_points_to_2D_image_points(points):
 
 # resolve full directory location of data set for left / right images
 
-full_path_directory_left =  os.path.join(master_path_to_dataset, directory_to_cycle_left);
-full_path_directory_right =  os.path.join(master_path_to_dataset, directory_to_cycle_right);
+full_path_directory_left =  os.path.join(master_path_to_dataset, directory_to_cycle_left)
+full_path_directory_right =  os.path.join(master_path_to_dataset, directory_to_cycle_right)
 
-full_path_filename_left = os.path.join(full_path_directory_left, "1506942480.483420_L.png");
-full_path_filename_right = (full_path_filename_left.replace("left", "right")).replace("_L", "_R");
+full_path_filename_left = os.path.join(full_path_directory_left, "1506942480.483420_L.png")
+full_path_filename_right = (full_path_filename_left.replace("left", "right")).replace("_L", "_R")
 
 # setup the disparity stereo processor to find a maximum of 128 disparity values
 # (adjust parameters if needed - this will effect speed to processing)

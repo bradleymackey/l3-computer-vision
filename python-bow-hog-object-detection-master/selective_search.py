@@ -27,7 +27,7 @@ cv2.setNumThreads(4);
 
 #####################################################################
 
-directory_to_cycle = "pedestrian/INRIAPerson/Test/pos/" # edit this
+directory_to_cycle = "/Users/bradleymackey/Desktop/INRIAPerson/Test/pos/" # edit this
 
 #####################################################################
 
@@ -52,17 +52,17 @@ for filename in sorted(os.listdir(directory_to_cycle)):
 
         # start a timer (to see how long processing and display takes)
 
-        start_t = cv2.getTickCount();
+        start_t = cv2.getTickCount()
 
         # set input image on which we will run segmentation
 
         ss.setBaseImage(frame)
 
         # Switch to fast but low recall Selective Search method
-        ss.switchToSelectiveSearchFast()
+        #ss.switchToSelectiveSearchFast()
 
         # Switch to high recall but slow Selective Search method (slower)
-        # ss.switchToSelectiveSearchQuality()
+        ss.switchToSelectiveSearchQuality()
 
         # run selective search segmentation on input image
         rects = ss.process()
