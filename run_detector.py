@@ -77,6 +77,24 @@ print()
 print("--- beginning detections ---")
 print()
 
+def rectContains(rect,pt):
+    # x1,y1,x2,y2
+    contains = pt[0]>rect[0] and pt[0]<rect[2] and pt[1]>rect[1] and pt[1]<rect[3]
+    return contains
+
+def compressDetections(rects):
+    #x1,y1,x2,y2
+    valid_rects = []
+    for rect in rects:
+        valid = True
+        for other_rect in rects:
+            if rectContains(other_rect,(rect[0],rect[1])) or rectContains(other_rect,(rect[2],rect[3])):
+                valid = False
+                break
+        if valid:
+            valid_rects.append(rect)
+    return valid_rects
+
 
 for filename_left in left_file_list:
 
@@ -121,41 +139,41 @@ for filename_left in left_file_list:
         left_copy = left_processor.image
         left_copy = cv2.GaussianBlur(left_copy, (5, 5), 0)
 
-        imgray = cv2.cvtColor(left_copy,cv2.COLOR_BGR2GRAY)
-        ret,thresh = cv2.threshold(imgray,127,255,0)
-        kernel = np.ones((4,4),np.uint8)
-        thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
-        left_copy, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        # imgray = cv2.cvtColor(left_copy,cv2.COLOR_BGR2GRAY)
+        # ret,thresh = cv2.threshold(imgray,127,255,0)
+        # kernel = np.ones((4,4),np.uint8)
+        # thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
+        # left_copy, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
 
-        sd = ShapeDetector()
+        # sd = ShapeDetector()
 
-        # loop over the contours
-        for c in contours:
-            # compute the center of the contour, then detect the name of the
-            # shape using only the contour
-            M = cv2.moments(c)
-            cX = int(M["m10"] / M["m00"])
-            cY = int(M["m01"] / M["m00"])
-            shape = sd.detect(c)
+        # # loop over the contours
+        # for c in contours:
+        #     # compute the center of the contour, then detect the name of the
+        #     # shape using only the contour
+        #     M = cv2.moments(c)
+        #     cX = int(M["m10"] / M["m00"])
+        #     cY = int(M["m01"] / M["m00"])
+        #     shape = sd.detect(c)
         
-            # multiply the contour (x, y)-coordinates by the resize ratio,
-            # then draw the contours and the name of the shape on the image
-            c = c.astype("float")
-            c *= 1
-            c = c.astype("int")
-            cv2.drawContours(imgL, [c], -1, (0, 255, 0), 2)
-            
-            cv2.putText(imgL, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-                0.5, (255, 255, 255), 2)
+        #     # multiply the contour (x, y)-coordinates by the resize ratio,
+        #     # then draw the contours and the name of the shape on the image
+        #     c = c.astype("float")
+        #     c *= 1
+        #     c = c.astype("int")
+
+        #     # cols, lefty, righty = sd.is_shape_upright(c, left_copy)
+        #     # cv2.line(imgL,(cols-1,righty),(0,lefty),(0,255,0),2)
+
+        #     cv2.drawContours(imgL, [c], -1, (0, 255, 0), 2)
+        #     cv2.putText(imgL, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
+        #     0.5, (255, 255, 255), 2)
 
         #left_copy = cv2.Canny(left_copy, 255,1)
 
-
         print("-------- files loaded successfully --------")
         print()
-
-
 
         detections = []
 
@@ -303,12 +321,38 @@ for filename_left in left_file_list:
 
         detections = non_max_suppression_fast(np.int32(detections), 0.8)
 
+        height, width = imgL.shape[:2]
+
+
+        interest_1_ur = (0,int(height/7))
+        interest_1_ll = (int(width/2.4), int(4*height/5))
+        region_1_rect = [interest_1_ur[0],interest_1_ur[1],interest_1_ll[0],interest_1_ll[1]]
+
+        interest_2_ur = (int(width/2),int(height/7))
+        interest_2_ll = (width, int(4*height/5))
+        region_2_rect = [interest_2_ur[0],interest_2_ur[1],interest_2_ll[0],interest_2_ll[1]]
+
+        cv2.rectangle(imgL, interest_1_ur, interest_1_ll, (0, 255, 255), 2)
+        cv2.rectangle(imgL, interest_2_ur, interest_2_ll, (0, 255, 255), 2)
+
         # finally draw all the detection on the original LEFT image
+        valid_rects = []
         for rect in detections:
-            cv2.rectangle(imgL, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
+            point1 = (rect[0], rect[1])
+            point2 = (rect[2], rect[3])
+            if (rectContains(region_1_rect,point1) and rectContains(region_1_rect,point2)) or (rectContains(region_2_rect,point1) and rectContains(region_2_rect,point2)):
+                valid_rects.append(rect)
 
+        valid_rects = compressDetections(valid_rects)
+        for rect in valid_rects:
+            point1 = (rect[0], rect[1])
+            point2 = (rect[2], rect[3])
+            cv2.rectangle(imgL, point1, point2, (0, 0, 255), 2)
 
-        cv2.drawContours(imgL, contours, -1, (0,255,0), 1)
+                
+        
+
+        #cv2.drawContours(imgL, contours, -1, (0,255,0), 1)
         cv2.imshow('left image',imgL)
         cv2.imshow('left image copy',left_copy)
         cv2.imshow('right image',imgR)

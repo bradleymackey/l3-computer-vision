@@ -31,7 +31,7 @@ DATA_testing_path_pos = os.path.join(master_path_to_dataset,"INRIAPerson/test_64
 # (for larger windows sizes, for example from selective search - resize the
 # window to this size before feature descriptor extraction / classification)
 
-DATA_WINDOW_SIZE = [64, 128];
+DATA_WINDOW_SIZE = [64, 128]
 
 # the maximum left/right, up/down offset to use when generating samples for training
 # that are centred around the centre of the image

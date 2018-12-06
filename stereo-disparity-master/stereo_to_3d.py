@@ -19,9 +19,8 @@ import os
 import numpy as np
 import random
 import csv
-import main
 
-master_path_to_dataset = main.master_path_to_dataset # ** need to edit this **
+master_path_to_dataset = "/Users/bradleymackey/Desktop/TTBB-durham-02-10-17-sub10" # ** need to edit this **
 directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
 
@@ -43,12 +42,12 @@ image_centre_w = 474.5;
 
 def project_disparity_to_3d(disparity, max_disparity, rgb=[]):
 
-    points = [];
+    points = []
 
-    f = camera_focal_length_px;
-    B = stereo_camera_baseline_m;
+    f = camera_focal_length_px
+    B = stereo_camera_baseline_m
 
-    height, width = disparity.shape[:2];
+    height, width = disparity.shape[:2]
 
     # assume a minimal disparity of 2 pixels is possible to get Zmax
     # and then we get reasonable scaling in X and Y output if we change
@@ -185,11 +184,20 @@ if (os.path.isfile(full_path_filename_left) and os.path.isfile(full_path_filenam
     # select a random subset of the 3D points (4 in total)
     # and them project back to the 2D image (as an example)
 
-    pts = project_3D_points_to_2D_image_points(random.sample(points, 4));
+    rand_points = random.sample(points, 20)
+    print(rand_points)
+    pts = project_3D_points_to_2D_image_points(rand_points);
     pts = np.array(pts, np.int32);
     pts = pts.reshape((-1,1,2));
 
-    cv2.polylines(imgL,[pts],True,(0,255,255), 3);
+    i = 0
+    for point in pts:
+        print(rand_points[i])
+        print("point",i,"is at",point,"distance is",rand_points[i][2])
+        cv2.circle(imgL,(point[0][0],point[0][1]),5,(0,255,255), -1)
+        cv2.putText(imgL, "point {} d {}".format(i,rand_points[i][2]), (point[0][0],point[0][1]),cv2.FONT_HERSHEY_DUPLEX, 0.5, (0,0,0), thickness = 1)
+        i += 1
+
 
     cv2.imshow('left image',imgL)
     cv2.imshow('right image',imgR)

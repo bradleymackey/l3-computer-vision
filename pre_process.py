@@ -10,10 +10,6 @@ handlers for the pre-processing of images, in order to ensure the most accurate 
 import cv2
 import numpy as np
 
-# preprocessing pipeline:
-# - gamma correct
-# 
-
 class ImagePreprocessor(object):
     """
     image preprocessor that will work on a specific image
@@ -35,16 +31,16 @@ class ImagePreprocessor(object):
     def smooth(self):
         """
         performs a simple smoothing convolution to the image
-        code from: https://docs.opencv.org/3.1.0/d4/d13/tutorial_py_filtering.html
         """
+        # code adapted from: https://docs.opencv.org/3.1.0/d4/d13/tutorial_py_filtering.html
         kernel = np.ones((3,3),np.float32)/9
         self.image = cv2.filter2D(self.image,-1,kernel)
 
     def fix_luminance(self):
         """
         fixes illumination in images, giving a smoother image overall
-        code from: https://stackoverflow.com/a/39744436/3261161
         """
+        # code adapted from: https://stackoverflow.com/a/39744436/3261161
         lab = cv2.cvtColor(self.image, cv2.COLOR_BGR2LAB)
         l, a, b = cv2.split(lab)
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(16,16))
@@ -53,12 +49,16 @@ class ImagePreprocessor(object):
         self.image = cv2.cvtColor(limg, cv2.COLOR_LAB2BGR)
 
     def reduce_brightness(self):
+        """
+        lowers brigtness on the image
+        """
+        # convert to hsv, so we can directly alter luminance
         hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
         h, s, v = cv2.split(hsv)
-
+        
         lim = 0
         v[v < lim] = 0
         v[v <= lim] -= 50
-
+        # back to bgr for the image
         final_hsv = cv2.merge((h, s, v))
         self.image = cv2.cvtColor(final_hsv, cv2.COLOR_HSV2BGR)
