@@ -51,9 +51,6 @@ def project_disparity_to_3d(disparity, max_disparity, rgb=[]):
 
     height, width = disparity.shape[:2]
 
-    print("disparity height:",height)
-    print("disparity width:",width)
-
     # assume a minimal disparity of 2 pixels is possible to get Zmax
     # and then we get reasonable scaling in X and Y output if we change
     # Z to Zmax in the lines X = ....; Y = ...; below
@@ -106,9 +103,6 @@ def avg_dist_for_points_surrounding(point,disparity,max_disparity):
     min_y = max(0,point[1]-200)
     max_y = min(height,point[1]+200)
 
-    print("y range is:",min_y,max_y)
-    print("x range is:",min_x,max_x)
-
     for y in range(min_y,max_y): # 0 - height is the y axis index
         for x in range(min_x,max_x): # 0 - width is the x axis index
 
@@ -124,9 +118,6 @@ def avg_dist_for_points_surrounding(point,disparity,max_disparity):
 
                 # add to points
                 points.append(Z)
-
-
-    print("the points:",points)
 
     if points == []:
         return 5.134

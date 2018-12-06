@@ -325,8 +325,6 @@ for filename_left in left_file_list:
 
         cv2.imshow("disparity", (disparity_scaled * (256. / max_disparity)).astype(np.uint8))
 
-
-
         # For the overall set of detections (over all scales) perform
         # non maximal suppression (i.e. remove overlapping boxes etc).
 
@@ -372,12 +370,12 @@ for filename_left in left_file_list:
             point2 = (rect[2], rect[3])
             cv2.rectangle(imgL, point1, point2, (0, 0, 255), 3)
 
-
         #points = project_disparity_to_3d(disparity_scaled, max_disparity, imgL)
         detected_distances = []
         for rect in valid_rects:
             centre = rect_centre(rect)
             dist = avg_dist_for_points_surrounding(centre,disparity_scaled,max_disparity)
+            detected_distances.append(dist)
             cv2.putText(imgL, "P: {:.2f}m".format(dist), (rect[0],rect[3]+20),cv2.FONT_HERSHEY_DUPLEX, 0.75, (0,0,255), thickness = 1)
 
         min_distance_string = None
@@ -390,7 +388,6 @@ for filename_left in left_file_list:
         print(filename_left)
         print(filename_right,min_distance_string)
         print()
-
 
         #cv2.drawContours(imgL, contours, -1, (0,255,0), 1)
         cv2.imshow('left image',imgL)
