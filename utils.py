@@ -186,12 +186,12 @@ class ImageData(object):
 def generate_patches(img, sample_patches_to_generate=0, centre_weighted=False,
                             centre_sampling_offset=10, patch_size=(64,128)):
 
-    patches = [];
+    patches = []
 
     # if no patches specifed just return original image
 
     if (sample_patches_to_generate == 0):
-        return [img];
+        return [img]
 
     # otherwise generate N sub patches
 
@@ -331,20 +331,34 @@ def get_class_labels(imgs_data):
 
 ################################################################################
 
+###### rectangle functions #####
+
 def rectContainsPoint(rect,pt):
+    """
+    returns true if `pt` is contained within `rect`
+    """
     # x1,y1,x2,y2
     return pt[0]>rect[0] and pt[0]<rect[2] and pt[1]>rect[1] and pt[1]<rect[3]
 
 
 def rectContainsRectPartially(rect,rt):
+    """
+    returns true if any vertex of `rt` is contained within `rect`
+    """
     #x1,y1,x2,y2
     return rectContainsPoint(rect,(rt[0],rt[1])) or rectContainsPoint(rect,(rt[2],rt[3])) or rectContainsPoint(rect,(rt[2],rt[1])) or rectContainsPoint(rect,(rt[0],rt[3]))
 
 def rectContainsRectFully(rect,rt):
+    """
+    returns true if `rt` is fully contained within `rect`
+    """
     #x1,y1,x2,y2
     return rectContainsPoint(rect,(rt[0],rt[1])) and rectContainsPoint(rect,(rt[2],rt[3])) and rectContainsPoint(rect,(rt[2],rt[1])) and rectContainsPoint(rect,(rt[0],rt[3]))
 
 def compressDetections(rects):
+    """
+    compresses similar (overlapping detections into a single detection)
+    """
     #x1,y1,x2,y2
     valid_rects = []
     for rect in rects:
@@ -358,13 +372,31 @@ def compressDetections(rects):
     return valid_rects
 
 def rectGoodSize(width,height,rect):
-    rect_height = rect[2] - rect[1]
-    rect_width = rect[1] - rect[3]
-    if rect_width>rect_height:
-        return False
-    if rect_height<(height/4):
-        return False
-    if rect_width<(width/30):
+    """
+    determines if a potential pedestrian detection rect is of an appropriate shape and size to be useful
+    """
+    rect_height = max(rect[2],rect[0]) - min(rect[2],rect[0])
+    rect_width = max(rect[3],rect[1]) - min(rect[3],rect[1])
+    if rect_width<=rect_height:
         return False
     return True
+
+def rect_centre(rect):
+    """
+    returns the centre-point of a given rect as (x,y)
+    """
+    norm_x1 = rect[0]
+    norm_x2 = rect[2]
+    norm_y1 = rect[1]
+    norm_y2 = rect[3]
+    min_x = min(norm_x1,norm_x2)
+    min_y = min(norm_y1,norm_y2)
+    norm_x1 -= min_x
+    norm_x2 -= min_x
+    norm_y1 -= min_y
+    norm_y2 -= min_y
+    x = int(max(norm_x1,norm_x2)/2)
+    y = int(max(norm_y1,norm_y2)/2)
+    return (x,y)
     
+################################

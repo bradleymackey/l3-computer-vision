@@ -21,13 +21,14 @@ import random
 import csv
 import params
 
-master_path_to_dataset = params.master_path_to_dataset # ** need to edit this **
+master_path_to_dataset = params.master_path_to_dataset # dataset populated from global parameters file
 directory_to_cycle_left = "left-images"     # edit this if needed
 directory_to_cycle_right = "right-images"   # edit this if needed
 
 #####################################################################
 
 # fixed camera parameters for this stereo setup (from calibration)
+# DO NOT CHANGE
 
 camera_focal_length_px = 399.9745178222656  # focal length in pixels
 camera_focal_length_m = 4.8 / 1000          # focal length in metres (4.8 mm)
@@ -86,7 +87,12 @@ def project_disparity_to_3d(disparity, max_disparity, rgb=[]):
 
 
 def avg_dist_for_points_surrounding(point,disparity,max_disparity):
+    """
+    gets the approximate distance from the camera for a given point in the disparity image
+    (similar in operation to project_disparity_to_3d, but only returns a single DEPTH value)
+    """
 
+    # potential points stored here
     points = []
 
     f = camera_focal_length_px
@@ -94,15 +100,7 @@ def avg_dist_for_points_surrounding(point,disparity,max_disparity):
 
     height, width = disparity.shape[:2]
 
-    print("disparity height:",height)
-    print("disparity width:",width)
-
-    # assume a minimal disparity of 2 pixels is possible to get Zmax
-    # and then we get reasonable scaling in X and Y output if we change
-    # Z to Zmax in the lines X = ....; Y = ...; below
-
-    # Zmax = ((f * B) / 2);
-
+    # define the regions that we will fetch disparity values for
     min_x = max(0,point[0]-200)
     max_x = min(width,point[0]+200)
     min_y = max(0,point[1]-200)

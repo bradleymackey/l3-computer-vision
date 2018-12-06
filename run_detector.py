@@ -79,21 +79,27 @@ print()
 print("--- beginning detections ---")
 print()
 
+def pre_process_image(image):
+    """
+    pre-processes image for better image detections
+    """
+    left_processor = ImagePreprocessor(image)
+    left_processor.correct_gamma(gamma=1.7)
+    left_processor.fix_luminance()
+    left_processor.reduce_brightness()
+    image = left_processor.image
+    image = cv2.GaussianBlur(image, (5, 5), 0)
+    return image
 
-def rect_centre(rect):
-    norm_x1 = rect[0]
-    norm_x2 = rect[2]
-    norm_y1 = rect[1]
-    norm_y2 = rect[3]
-    min_x = min(norm_x1,norm_x2)
-    min_y = min(norm_y1,norm_y2)
-    norm_x1 -= min_x
-    norm_x2 -= min_x
-    norm_y1 -= min_y
-    norm_y2 -= min_y
-    x = int(max(norm_x1,norm_x2)/2)
-    y = int(max(norm_y1,norm_y2)/2)
-    return (x,y)
+def detection_region(left,right,top,bottom):
+    """
+    creates a detection region rect
+    """
+    interest_ur = (left,top)
+    interest_ll = (right, bottom)
+    region_rect = [interest_ur[0],interest_ur[1],interest_ll[0],interest_ll[1]]
+    return region_rect
+
 
 
 for filename_left in left_file_list:
@@ -110,65 +116,24 @@ for filename_left in left_file_list:
     full_path_filename_left = os.path.join(full_path_directory_left, filename_left)
     full_path_filename_right = os.path.join(full_path_directory_right, filename_right)
 
-    # print out the filenames, as per the project requirements
-    print(filename_left)
-    print(filename_right,": nearest detected scene object: (X.Xm)")
-    print()
-
     # check the file is a PNG file (left) and check a corresponding right image
     # actually exists
 
     if ('.png' in filename_left) and (os.path.isfile(full_path_filename_right)) :
 
-        # read left and right images and display in windows
-        # N.B. despite one being grayscale both are in fact stored as 3-channel
-        # RGB images so load both as such
-
         imgL = cv2.imread(full_path_filename_left, cv2.IMREAD_COLOR)
         imgR = cv2.imread(full_path_filename_right, cv2.IMREAD_COLOR)
-        # images are shown after person detections are made!
-
         
         left_copy = imgL.copy()
 
         # pre-process the left image
-        left_processor = ImagePreprocessor(left_copy)
-        left_processor.correct_gamma(gamma=1.7)
-        left_processor.fix_luminance()
-        left_processor.reduce_brightness()
-        left_copy = left_processor.image
-        left_copy = cv2.GaussianBlur(left_copy, (5, 5), 0)
+        pre_process_image(left_copy)
 
         # imgray = cv2.cvtColor(left_copy,cv2.COLOR_BGR2GRAY)
         # ret,thresh = cv2.threshold(imgray,127,255,0)
         # kernel = np.ones((4,4),np.uint8)
         # thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
         # left_copy, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
-
-        # sd = ShapeDetector()
-
-        # # loop over the contours
-        # for c in contours:
-        #     # compute the center of the contour, then detect the name of the
-        #     # shape using only the contour
-        #     M = cv2.moments(c)
-        #     cX = int(M["m10"] / M["m00"])
-        #     cY = int(M["m01"] / M["m00"])
-        #     shape = sd.detect(c)
-        
-        #     # multiply the contour (x, y)-coordinates by the resize ratio,
-        #     # then draw the contours and the name of the shape on the image
-        #     c = c.astype("float")
-        #     c *= 1
-        #     c = c.astype("int")
-
-        #     # cols, lefty, righty = sd.is_shape_upright(c, left_copy)
-        #     # cv2.line(imgL,(cols-1,righty),(0,lefty),(0,255,0),2)
-
-        #     cv2.drawContours(imgL, [c], -1, (0, 255, 0), 2)
-        #     cv2.putText(imgL, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
-        #     0.5, (255, 255, 255), 2)
 
         #left_copy = cv2.Canny(left_copy, 255,1)
 
@@ -177,54 +142,53 @@ for filename_left in left_file_list:
 
         detections = []
 
-
         ################ selective search ######################
 
-        ss.setBaseImage(left_copy)
+        # ss.setBaseImage(left_copy)
 
-        # Switch to fast but low recall Selective Search method
-        ss.switchToSelectiveSearchFast()
+        # # Switch to fast but low recall Selective Search method
+        # # ss.switchToSelectiveSearchFast()
 
-        # Switch to high recall but slow Selective Search method (slower)
-        #ss.switchToSelectiveSearchQuality()
+        # # Switch to high recall but slow Selective Search method (slower)
+        # ss.switchToSelectiveSearchQuality()
 
-        # run selective search segmentation on input image
-        rects = ss.process()
-        print('Total Number of Region Proposals: {}'.format(len(rects)))
+        # # run selective search segmentation on input image
+        # rects = ss.process()
+        # print('Total Number of Region Proposals: {}'.format(len(rects)))
 
-        # number of region proposals to show
-        numShowRects = 100
+        # # number of region proposals to show
+        # numShowRects = 100
 
-        # iterate over all the region proposals
-        for i, rect in enumerate(rects):
-            x, y, w, h = rect
-            detected_rect = [x,y,x+w,y+w]
-            img_region = left_copy[y:y+h,x:x+w]
+        # # iterate over all the region proposals
+        # for i, rect in enumerate(rects):
+        #     x, y, w, h = rect
+        #     detected_rect = [x,y,x+w,y+w]
+        #     img_region = left_copy[y:y+h,x:x+w]
 
 
-            img_data = ImageData(img_region)
-            img_data.compute_hog_descriptor()
+        #     img_data = ImageData(img_region)
+        #     img_data.compute_hog_descriptor()
 
-            # generate and classify each window by constructing a BoW
-            # histogram and passing it through the SVM classifier
+        #     # generate and classify each window by constructing a BoW
+        #     # histogram and passing it through the SVM classifier
 
-            if img_data.hog_descriptor is not None:
+        #     if img_data.hog_descriptor is not None:
 
-                #print("detecting with SVM ...")
-                retval, [result] = svm.predict(np.float32([img_data.hog_descriptor]))
-                #print(result)
+        #         #print("detecting with SVM ...")
+        #         retval, [result] = svm.predict(np.float32([img_data.hog_descriptor]))
+        #         #print(result)
 
-                # if we get a detection, then record it
+        #         # if we get a detection, then record it
 
-                if result[0] == params.DATA_CLASS_NAMES["pedestrian"]:
+        #         if result[0] == params.DATA_CLASS_NAMES["pedestrian"]:
 
-                    cv2.imshow("thing", img_region)
+        #             cv2.imshow("thing", img_region)
 
-                    # store rect as (x1, y1) (x2,y2) pair
-                    rect = np.float32([x, y, x + w, y + h])
-                    detections.append(rect)
-            else:
-                continue
+        #             # store rect as (x1, y1) (x2,y2) pair
+        #             rect = np.float32([x, y, x + w, y + h])
+        #             detections.append(rect)
+        #     else:
+        #         continue
 
         ################################
         
@@ -233,88 +197,86 @@ for filename_left in left_file_list:
         ######## sliding window ##############
 
 
-        # # for a range of different image scales in an image pyramid
+        # for a range of different image scales in an image pyramid
 
-        # current_scale = -1
+        current_scale = -1
         
-        # rescaling_factor = 1.32
+        rescaling_factor = 1.32
 
-        # # for each re-scale of the image
+        # for each re-scale of the image
 
-        # for resized in pyramid(left_copy, scale=rescaling_factor):
+        for resized in pyramid(left_copy, scale=rescaling_factor):
 
-        #     # at the start our scale = 1, because we catch the flag value -1
+            # at the start our scale = 1, because we catch the flag value -1
 
-        #     if current_scale == -1:
-        #         current_scale = 1
+            if current_scale == -1:
+                current_scale = 1
 
-        #     # after this rescale downwards each time (division by re-scale factor)
+            # after this rescale downwards each time (division by re-scale factor)
 
-        #     else:
-        #         current_scale /= rescaling_factor
+            else:
+                current_scale /= rescaling_factor
 
-        #     rect_img = resized.copy()
+            rect_img = resized.copy()
 
-        #     # if we want to see progress show each scale
+            # if we want to see progress show each scale
 
-        #     if (show_scan_window_process):
-        #         cv2.imshow('current scale',rect_img)
-        #         cv2.waitKey(10)
+            if (show_scan_window_process):
+                cv2.imshow('current scale',rect_img)
+                cv2.waitKey(10)
 
-        #     # loop over the sliding window for each layer of the pyramid (re-sized image)
+            # loop over the sliding window for each layer of the pyramid (re-sized image)
 
-        #     window_size = params.DATA_WINDOW_SIZE
-        #     step = math.floor(resized.shape[0] / 16)
+            window_size = params.DATA_WINDOW_SIZE
+            step = math.floor(resized.shape[0] / 16)
 
-        #     if step > 0:
+            if step > 0:
 
-        #         ############################# for each scan window
+                ############################# for each scan window
 
-        #         for (x, y, window) in sliding_window(resized, window_size, step_size=step):
+                for (x, y, window) in sliding_window(resized, window_size, step_size=step):
 
-        #             # if we want to see progress show each scan window
+                    # if we want to see progress show each scan window
 
-        #             if (show_scan_window_process):
-        #                 cv2.imshow('current window',window)
-        #                 key = cv2.waitKey(10) # wait 10ms
+                    if (show_scan_window_process):
+                        cv2.imshow('current window',window)
+                        key = cv2.waitKey(10) # wait 10ms
 
-        #             # for each window region get the HoG feature point descriptors
+                    # for each window region get the HoG feature point descriptors
 
-        #             img_data = ImageData(window)
-        #             img_data.compute_hog_descriptor()
+                    img_data = ImageData(window)
+                    img_data.compute_hog_descriptor()
 
-        #             # generate and classify each window by constructing a BoW
-        #             # histogram and passing it through the SVM classifier
+                    # generate and classify each window by constructing a BoW
+                    # histogram and passing it through the SVM classifier
 
-        #             if img_data.hog_descriptor is not None:
+                    if img_data.hog_descriptor is not None:
 
-        #                 #print("detecting with SVM ...")
-        #                 retval, [result] = svm.predict(np.float32([img_data.hog_descriptor]))
-        #                 #print(result)
+                        #print("detecting with SVM ...")
+                        retval, [result] = svm.predict(np.float32([img_data.hog_descriptor]))
+                        #print(result)
 
-        #                 # if we get a detection, then record it
+                        # if we get a detection, then record it
 
-        #                 if result[0] == params.DATA_CLASS_NAMES["pedestrian"]:
+                        if result[0] == params.DATA_CLASS_NAMES["pedestrian"]:
 
-        #                     # store rect as (x1, y1) (x2,y2) pair
+                            # store rect as (x1, y1) (x2,y2) pair
 
-        #                     rect = np.float32([x, y, x + window_size[0], y + window_size[1]])
+                            rect = np.float32([x, y, x + window_size[0], y + window_size[1]])
 
-        #                     # if we want to see progress show each detection, at each scale
+                            # if we want to see progress show each detection, at each scale
 
-        #                     if (show_scan_window_process):
-        #                         cv2.rectangle(rect_img, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
-        #                         cv2.imshow('current scale',rect_img)
-        #                         cv2.waitKey(40)
+                            if (show_scan_window_process):
+                                cv2.rectangle(rect_img, (rect[0], rect[1]), (rect[2], rect[3]), (0, 0, 255), 2)
+                                cv2.imshow('current scale',rect_img)
+                                cv2.waitKey(40)
 
-        #                     rect *= (1.0 / current_scale)
-        #                     detections.append(rect)
+                            rect *= (1.0 / current_scale)
+                            detections.append(rect)
 
                 ########################################################
         ################################
 
-
-        
 
 
         # remember to convert to grayscale (as the disparity matching works on grayscale)
@@ -347,16 +309,16 @@ for filename_left in left_file_list:
         # so we fix this also using a initial threshold between 0 and max_disparity
         # as disparity=-1 means no disparity available
 
-        _, disparity = cv2.threshold(disparity,0, max_disparity * 16, cv2.THRESH_TOZERO);
-        disparity_scaled = (disparity / 16.).astype(np.uint8);
+        _, disparity = cv2.threshold(disparity,0, max_disparity * 16, cv2.THRESH_TOZERO)
+        disparity_scaled = (disparity / 16.).astype(np.uint8)
 
         # crop disparity to chop out left part where there are with no disparity
         # as this area is not seen by both cameras and also
         # chop out the bottom area (where we see the front of car bonnet)
 
         if (crop_disparity):
-            width = np.size(disparity_scaled, 1);
-            disparity_scaled = disparity_scaled[0:390,135:width];
+            width = np.size(disparity_scaled, 1)
+            disparity_scaled = disparity_scaled[0:390,135:width]
 
         # display image (scaling it to the full 0->255 range based on the number
         # of disparities in use for the stereo part)
@@ -372,50 +334,62 @@ for filename_left in left_file_list:
 
         height, width = imgL.shape[:2]
 
-
+        # left pedestrian region for detections
         interest_1_ur = (0,int(height/7))
         interest_1_ll = (int(width/2.4), int(4*height/5))
         region_1_rect = [interest_1_ur[0],interest_1_ur[1],interest_1_ll[0],interest_1_ll[1]]
 
+        # right pedestrian region for detections
         interest_2_ur = (int(width/2),int(height/7))
         interest_2_ll = (width, int(4*height/5))
         region_2_rect = [interest_2_ur[0],interest_2_ur[1],interest_2_ll[0],interest_2_ll[1]]
 
-        partial_reg_1_ur = (0,int(height/3))
+        # non-exclusive bottom region for detections
+        partial_reg_1_ur = (0,int(height/2))
         partial_reg_1_ll = (width,height)
         partial_region_1_rect = [partial_reg_1_ur[0],partial_reg_1_ur[1],partial_reg_1_ll[0],partial_reg_1_ll[1]]
 
-        partial_reg_2_ur = (0,0)
-        partial_reg_2_ll = (width,int(height/4))
-        partial_region_2_rect = [partial_reg_2_ur[0],partial_reg_2_ur[1],partial_reg_2_ll[0],partial_reg_2_ll[1]]
-
-
+        # TESTING - draw these detection regions
         cv2.rectangle(imgL, interest_1_ur, interest_1_ll, (0, 255, 255), 2)
         cv2.rectangle(imgL, interest_2_ur, interest_2_ll, (0, 255, 255), 2)
         cv2.rectangle(imgL, partial_reg_1_ur, partial_reg_1_ll, (0, 255,0), 2)
-        cv2.rectangle(imgL, partial_reg_2_ur, partial_reg_2_ll, (255, 0,0), 2)
 
         # finally draw all the detection on the original LEFT image
         valid_rects = []
         for rect in detections:
+            # ensure fully enclosed by one of the compulsory regions
             if (rectContainsRectFully(region_1_rect,rect)) or (rectContainsRectFully(region_2_rect,rect)):
-                if rectContainsRectFully(partial_region_1_rect,rect) == False and rectContainsRectFully(partial_region_2_rect,rect) == False:
+                # ensure not fully contained in a non-exclusive region
+                if rectContainsRectFully(partial_region_1_rect,rect) == False:
+                    # ensure that rect is not too small and roughly the correct shape
                     if rectGoodSize(width, height, rect):
                         valid_rects.append(rect)
-                
+        
+        # draw all valid rects after compression
         valid_rects = compressDetections(valid_rects)
         for rect in valid_rects:
             point1 = (rect[0], rect[1])
             point2 = (rect[2], rect[3])
-            cv2.rectangle(imgL, point1, point2, (0, 0, 255), 2)
-
+            cv2.rectangle(imgL, point1, point2, (0, 0, 255), 3)
 
 
         #points = project_disparity_to_3d(disparity_scaled, max_disparity, imgL)
+        detected_distances = []
         for rect in valid_rects:
             centre = rect_centre(rect)
             dist = avg_dist_for_points_surrounding(centre,disparity_scaled,max_disparity)
             cv2.putText(imgL, "P: {:.2f}m".format(dist), (rect[0],rect[3]+20),cv2.FONT_HERSHEY_DUPLEX, 0.75, (0,0,255), thickness = 1)
+
+        min_distance_string = None
+        try:
+            min_d = min(detected_distances)
+            min_distance_string = ": nearest detected scene object: ({:.2f}m)".format(min_d)
+        except:
+            min_distance_string = ": no objects detected"
+        # print out the filenames, as per the project requirements
+        print(filename_left)
+        print(filename_right,min_distance_string)
+        print()
 
 
         #cv2.drawContours(imgL, contours, -1, (0,255,0), 1)
