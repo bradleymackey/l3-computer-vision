@@ -330,3 +330,41 @@ def get_class_labels(imgs_data):
     return np.int32(class_labels)
 
 ################################################################################
+
+def rectContainsPoint(rect,pt):
+    # x1,y1,x2,y2
+    return pt[0]>rect[0] and pt[0]<rect[2] and pt[1]>rect[1] and pt[1]<rect[3]
+
+
+def rectContainsRectPartially(rect,rt):
+    #x1,y1,x2,y2
+    return rectContainsPoint(rect,(rt[0],rt[1])) or rectContainsPoint(rect,(rt[2],rt[3])) or rectContainsPoint(rect,(rt[2],rt[1])) or rectContainsPoint(rect,(rt[0],rt[3]))
+
+def rectContainsRectFully(rect,rt):
+    #x1,y1,x2,y2
+    return rectContainsPoint(rect,(rt[0],rt[1])) and rectContainsPoint(rect,(rt[2],rt[3])) and rectContainsPoint(rect,(rt[2],rt[1])) and rectContainsPoint(rect,(rt[0],rt[3]))
+
+def compressDetections(rects):
+    #x1,y1,x2,y2
+    valid_rects = []
+    for rect in rects:
+        valid = True
+        for other_rect in rects:
+            if rectContainsRectPartially(other_rect,rect):
+                valid = False
+                break
+        if valid:
+            valid_rects.append(rect)
+    return valid_rects
+
+def rectGoodSize(width,height,rect):
+    rect_height = rect[2] - rect[1]
+    rect_width = rect[1] - rect[3]
+    if rect_width>rect_height:
+        return False
+    if rect_height<(height/4):
+        return False
+    if rect_width<(width/30):
+        return False
+    return True
+    
