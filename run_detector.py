@@ -42,8 +42,6 @@ directory_to_cycle_right = "right-images"
 cv2.setUseOptimized(True)
 cv2.setNumThreads(4)
 
-ss = cv2.ximgproc.segmentation.createSelectiveSearchSegmentation()
-
 # set this to a file timestamp to start from (empty is first example - outside lab)
 # e.g. set to 1506943191.487683 for the end of the Bailey, just as the vehicle turns
 skip_forward_file_pattern = "" # set to timestamp to skip forward to
@@ -134,56 +132,6 @@ for filename_left in left_file_list:
 
         detections = []
 
-        ################ selective search ######################
-
-        # ss.setBaseImage(left_copy)
-
-        # # Switch to fast but low recall Selective Search method
-        # # ss.switchToSelectiveSearchFast()
-
-        # # Switch to high recall but slow Selective Search method (slower)
-        # ss.switchToSelectiveSearchQuality()
-
-        # # run selective search segmentation on input image
-        # rects = ss.process()
-        # print('Total Number of Region Proposals: {}'.format(len(rects)))
-
-        # # number of region proposals to show
-        # numShowRects = 100
-
-        # # iterate over all the region proposals
-        # for i, rect in enumerate(rects):
-        #     x, y, w, h = rect
-        #     detected_rect = [x,y,x+w,y+w]
-        #     img_region = left_copy[y:y+h,x:x+w]
-
-
-        #     img_data = ImageData(img_region)
-        #     img_data.compute_hog_descriptor()
-
-        #     # generate and classify each window by constructing a BoW
-        #     # histogram and passing it through the SVM classifier
-
-        #     if img_data.hog_descriptor is not None:
-
-        #         #print("detecting with SVM ...")
-        #         retval, [result] = svm.predict(np.float32([img_data.hog_descriptor]))
-        #         #print(result)
-
-        #         # if we get a detection, then record it
-
-        #         if result[0] == params.DATA_CLASS_NAMES["pedestrian"]:
-
-        #             cv2.imshow("thing", img_region)
-
-        #             # store rect as (x1, y1) (x2,y2) pair
-        #             rect = np.float32([x, y, x + w, y + h])
-        #             detections.append(rect)
-        #     else:
-        #         continue
-
-        ################################
-        
 
 
         ######## sliding window ##############
