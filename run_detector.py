@@ -32,7 +32,7 @@ from stereo_to_3d import *
 #####################################################################
 
 max_disparity = 128
-stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21);
+stereoProcessor = cv2.StereoSGBM_create(0, max_disparity, 21)
 
 # the path to the image data
 master_path_to_dataset = params.master_path_to_dataset
@@ -127,15 +127,7 @@ for filename_left in left_file_list:
         left_copy = imgL.copy()
 
         # pre-process the left image
-        pre_process_image(left_copy)
-
-        # imgray = cv2.cvtColor(left_copy,cv2.COLOR_BGR2GRAY)
-        # ret,thresh = cv2.threshold(imgray,127,255,0)
-        # kernel = np.ones((4,4),np.uint8)
-        # thresh = cv2.morphologyEx(thresh, cv2.MORPH_DILATE, kernel)
-        # left_copy, contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-
-        #left_copy = cv2.Canny(left_copy, 255,1)
+        left_copy = pre_process_image(left_copy)
 
         print("-------- files loaded successfully --------")
         print()
@@ -333,17 +325,17 @@ for filename_left in left_file_list:
         height, width = imgL.shape[:2]
 
         # left pedestrian region for detections
-        interest_1_ur = (0,int(height/7))
-        interest_1_ll = (int(width/2.4), int(4*height/5))
+        interest_1_ur = (0,int(height/9))
+        interest_1_ll = (int(width/3), int(5*height/6))
         region_1_rect = [interest_1_ur[0],interest_1_ur[1],interest_1_ll[0],interest_1_ll[1]]
 
         # right pedestrian region for detections
-        interest_2_ur = (int(width/2),int(height/7))
-        interest_2_ll = (width, int(4*height/5))
+        interest_2_ur = (int(width/2),int(height/9))
+        interest_2_ll = (width, int(5*height/6))
         region_2_rect = [interest_2_ur[0],interest_2_ur[1],interest_2_ll[0],interest_2_ll[1]]
 
         # non-exclusive bottom region for detections
-        partial_reg_1_ur = (0,int(height/2))
+        partial_reg_1_ur = (0,int(height/2.3))
         partial_reg_1_ll = (width,height)
         partial_region_1_rect = [partial_reg_1_ur[0],partial_reg_1_ur[1],partial_reg_1_ll[0],partial_reg_1_ll[1]]
 
@@ -354,9 +346,21 @@ for filename_left in left_file_list:
 
         # finally draw all the detection on the original LEFT image
         valid_rects = []
+        items_reg_1 = 0
+        items_reg_2 = 0
         for rect in detections:
             # ensure fully enclosed by one of the compulsory regions
-            if (rectContainsRectFully(region_1_rect,rect)) or (rectContainsRectFully(region_2_rect,rect)):
+            in_reg_1 = rectContainsRectFully(region_1_rect,rect)
+            in_reg_2 = rectContainsRectFully(region_2_rect,rect)
+            if in_reg_1:
+                if items_reg_1>=2:
+                    continue
+                items_reg_1 += 1
+            if in_reg_2:
+                if items_reg_2>=2:
+                    continue
+                items_reg_2 += 1
+            if (in_reg_1 or in_reg_2):
                 # ensure not fully contained in a non-exclusive region
                 if rectContainsRectFully(partial_region_1_rect,rect) == False:
                     # ensure that rect is not too small and roughly the correct shape
@@ -375,6 +379,8 @@ for filename_left in left_file_list:
         for rect in valid_rects:
             centre = rect_centre(rect)
             dist = avg_dist_for_points_surrounding(centre,disparity_scaled,max_disparity)
+            if dist>40:
+                dist = dist/2
             detected_distances.append(dist)
             cv2.putText(imgL, "P: {:.2f}m".format(dist), (rect[0],rect[3]+20),cv2.FONT_HERSHEY_DUPLEX, 0.75, (0,0,255), thickness = 1)
 
@@ -391,7 +397,6 @@ for filename_left in left_file_list:
 
         #cv2.drawContours(imgL, contours, -1, (0,255,0), 1)
         cv2.imshow('left image',imgL)
-        cv2.imshow('left image copy',left_copy)
         cv2.imshow('right image',imgR)
 
 

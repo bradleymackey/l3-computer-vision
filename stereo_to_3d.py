@@ -122,7 +122,7 @@ def avg_dist_for_points_surrounding(point,disparity,max_disparity):
     if points == []:
         return 5.134
     else:
-        return np.percentile(points,17)
+        return np.percentile(points,18)
 
 
 
