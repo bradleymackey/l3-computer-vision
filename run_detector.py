@@ -288,9 +288,9 @@ for filename_left in left_file_list:
         partial_region_1_rect = [partial_reg_1_ur[0],partial_reg_1_ur[1],partial_reg_1_ll[0],partial_reg_1_ll[1]]
 
         # TESTING - draw these detection regions
-        cv2.rectangle(imgL, interest_1_ur, interest_1_ll, (0, 255, 255), 2)
-        cv2.rectangle(imgL, interest_2_ur, interest_2_ll, (0, 255, 255), 2)
-        cv2.rectangle(imgL, partial_reg_1_ur, partial_reg_1_ll, (0, 255,0), 2)
+        # cv2.rectangle(imgL, interest_1_ur, interest_1_ll, (0, 255, 255), 2)
+        # cv2.rectangle(imgL, interest_2_ur, interest_2_ll, (0, 255, 255), 2)
+        # cv2.rectangle(imgL, partial_reg_1_ur, partial_reg_1_ll, (0, 255,0), 2)
 
         # finally draw all the detection on the original LEFT image
         valid_rects = []
